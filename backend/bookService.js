@@ -1,6 +1,6 @@
 const pool = require('./db');
 
-async function borrowBook(bookId, userName) {
+async function borrowBook(bookId, userId) {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -23,8 +23,8 @@ async function borrowBook(bookId, userName) {
     }
 
     await client.query(
-      'INSERT INTO loans (book_id, user_name) VALUES ($1, $2)',
-      [bookId, userName]
+      'INSERT INTO loans (book_id, user_id) VALUES ($1, $2)',
+      [bookId, userId]
     );
 
     await client.query('COMMIT');
@@ -45,8 +45,8 @@ async function returnBook(bookId, userId) {
     const updateResult = await client.query(
         `UPDATE loans
          SET returned_at = now()
-         WHERE book_id = $1 AND user_name = $2 AND returned_at IS NULL`,
-        [bookId, userName]  
+         WHERE book_id = $1 AND user_id = $2 AND returned_at IS NULL`,
+        [bookId, userId]  
     );
 
     if (updateResult.rows.length === 0) {
@@ -56,8 +56,8 @@ async function returnBook(bookId, userId) {
         return { error: 'NOT_FOUND' };
       }
       const activeLoan = await client.query(
-        'SELECT id FROM loans WHERE book_id = $1 AND user_name = $2 AND returned_at IS NULL',
-        [bookId, userName]
+        'SELECT id FROM loans WHERE book_id = $1 AND user_id = $2 AND returned_at IS NULL',
+        [bookId, userId]
       );
       if (activeLoan.rows.length === 0) {
         return { error: 'NO_ACTIVE_LOAN' };
