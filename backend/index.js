@@ -10,7 +10,20 @@ const app = express();
 app.use(express.json());
 
 
-app.use(cors({ origin: 'http://localhost:5173' })); // Vite's default port
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://library-app-frontend-a1s2.onrender.com',
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+}));
 
 app.post('/signup', async (req, res) => {
   const { email, password } = req.body;
